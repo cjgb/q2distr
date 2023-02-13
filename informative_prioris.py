@@ -19,31 +19,9 @@ def loss(parms, q1, q2, p1, p2, qfoo):
 # Sidebar
 # -----------------------------------------------------------------------------
 
-select_distribution = st.sidebar.radio(
-    "Select your distribution",
-    ("Normal", "t", "Gamma", "LogNormal")
-)
+st.sidebar.title('Distribution parameters given quantiles')
 
-p1 = st.sidebar.slider(
-    'Select the lower quantile',
-    min_value = 0.0, max_value = .5, value = .05
-)
-
-p2 = st.sidebar.slider(
-    'Select the upper quantile',
-    min_value = 0.5, max_value = 1.0, value = .95
-)
-
-
-
-# -----------------------------------------------------------------------------
-# Central panel
-# -----------------------------------------------------------------------------
-
-
-st.title('Distribution parameters given quantiles')
-
-st.markdown("""
+st.sidebar.markdown("""
 This application provides the parameters of a given distribution
 —for a selection of them—
 given its quantiles.
@@ -51,12 +29,42 @@ given its quantiles.
 It is intended to facilitate the creation of informative priors in Bayesian modeling.
 """)
 
+select_distribution = st.sidebar.radio(
+    "Select your distribution",
+    ("Normal", "t", "Gamma", "LogNormal")
+)
+
+p1_pct = st.sidebar.slider(
+    'Select the lower quantile (%)',
+    min_value = 0.0, max_value = 50.0,
+    value = 5.0, step = .1
+)
+
+p2_pct = st.sidebar.slider(
+    'Select the upper quantile (%)',
+    min_value = 50.0, max_value = 100.0,
+    value = 95.0, step = .1
+)
+
+p1 = p1_pct / 100.0
+p2 = p2_pct / 100.0
+
+# -----------------------------------------------------------------------------
+# Central panel
+# -----------------------------------------------------------------------------
+
 if select_distribution == 'Normal':
+
+    st.title('Normal distribution')
+
+    st.markdown(r"""
+    Standard normal distribution $N(\mu, \sigma)$.
+    """)
 
     def qnormal(p, mu, sigma):
         return ss.norm.ppf(p, mu, sigma)
 
-    full_range = st.slider("Set the full range",
+    full_range = st.slider("Set the graph range",
         min_value = -50.0,
         max_value =  50.0,
         step = .01,
@@ -91,7 +99,13 @@ if select_distribution == 'Normal':
 
 elif select_distribution == 't':
 
-    nu = st.slider("Set the number of degrees of freedom",
+    st.title('t distribution')
+
+    st.markdown(r"""
+    The $\mu$ and $\sigma$ parameters are such that $\frac{X - \mu}{\sigma} \sim t(\nu)$.
+    """)
+
+    nu = st.slider(r"Set $\nu$, the number of degrees of freedom",
         min_value = 0.0,
         max_value = 50.0,
         step = .1,
@@ -101,7 +115,7 @@ elif select_distribution == 't':
     def qt(p, mu, sigma, nu = nu):
         return ss.t.ppf(p, nu, mu, sigma)
 
-    full_range = st.slider("Set the full range",
+    full_range = st.slider("Set the full graph range",
         min_value = -50.0,
         max_value =  50.0,
         step = .01,
@@ -136,10 +150,16 @@ elif select_distribution == 't':
 
 elif select_distribution == 'Gamma':
 
+    st.title('Gamma distribution')
+
+    st.markdown(r"""
+    The $\alpha$ and $\beta$ parameters are such that the density function is $f(x) \sim x^{\alpha -1} \exp(-\beta x)$.
+    """)
+
     def qgamma(p, alpha, beta):
         return ss.gamma.ppf(p, alpha, scale = 1 / beta)
 
-    full_range = st.slider("Set the full range",
+    full_range = st.slider("Set the full figure range",
         min_value = 0.0,
         max_value = 100.0,
         step = .01,
@@ -175,6 +195,12 @@ elif select_distribution == 'Gamma':
 
 elif select_distribution == 'LogNormal':
 
+    st.title('Lognormal distribution')
+
+    st.markdown(r"""
+    The fitted parameters are $\mu$, $\sigma$ such that $\log(X) \sim N(\mu, \sigma)$.
+    """)
+
     def qnormal(p, mu, sigma):
         return ss.norm.ppf(p, mu, sigma)
 
@@ -205,8 +231,7 @@ elif select_distribution == 'LogNormal':
     st.pyplot(fig)
 
     st.markdown(rf"""
-        The parameters $\mu$ and $\sigma$ of the lognormal distribution are
-        are:
+        The parameters $\mu$ and $\sigma$ of the lognormal distribution are:
 
         $\mu$: {res['x'][0]}
 
