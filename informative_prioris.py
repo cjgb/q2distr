@@ -8,7 +8,7 @@ from scipy.optimize import minimize
 
 import numpy as np
 
-n_points = 100
+n_points = 1000
 
 def loss(parms, q1, q2, p1, p2, qfoo):
     mu, sigma = parms
@@ -30,8 +30,8 @@ It is intended to facilitate the creation of informative priors in Bayesian mode
 """)
 
 select_distribution = st.sidebar.radio(
-    "Select your distribution",
-    ("Normal", "t", "Gamma", "LogNormal")
+    'Select your distribution',
+    ('Normal', 't', 'Gamma', 'Inverse Gamma', 'LogNormal', 'Beta')
 )
 
 p1_pct = st.sidebar.slider(
@@ -193,6 +193,51 @@ elif select_distribution == 'Gamma':
         $\beta$: {res['x'][1]}
         """)
 
+elif select_distribution == 'Inverse Gamma':
+
+    st.title('Inverse Gamma distribution')
+
+    st.markdown(r"""
+    The $\alpha$ and $\beta$ parameters are such that $1/X \sim \Gamma(\alpha, \beta)$.
+    """)
+
+    def qgamma(p, alpha, beta):
+        return ss.gamma.ppf(p, alpha, scale = 1 / beta)
+
+    full_range = st.slider("Set the full figure range",
+        min_value = 0.0,
+        max_value = 100.0,
+        step = .01,
+        value = [0.0, 5.0]
+    )
+
+    my_range = st.slider("Set the quantile range",
+        min_value = full_range[0],
+        max_value = full_range[1],
+        step = .01,
+        value = [1.0, 4.0])
+
+    res = minimize(
+        loss, np.ones(2), method='Nelder-Mead',
+        tol=1e-6, args=(1 / my_range[1], 1 / my_range[0], p1, p2, qgamma))
+
+    x = np.linspace(full_range[0], full_range[1], n_points)
+    y = ss.invgamma.pdf(x, res['x'][0], scale = res['x'][1])
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+
+    st.pyplot(fig)
+
+    st.markdown(rf"""
+        The parameters $\alpha$ and $\beta$ of the
+        [Gamma distribution](https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.gamma.html)
+        are:
+
+        $\alpha$: {res['x'][0]}
+
+        $\beta$: {res['x'][1]}
+        """)
+
 elif select_distribution == 'LogNormal':
 
     st.title('Lognormal distribution')
@@ -236,4 +281,41 @@ elif select_distribution == 'LogNormal':
         $\mu$: {res['x'][0]}
 
         $\sigma$: {res['x'][1]}
+        """)
+
+elif select_distribution == 'Beta':
+
+    st.title('Beta distribution')
+
+    st.markdown(r"""
+    The fitted parameters are $\alpha$, $\beta$ such that the density
+    function $f(x) \sim x^{\alpha -1} (1-x)^{\beta - 1}$.
+    """)
+
+    def qbeta(p, a, b):
+        return ss.beta.ppf(p, a, b)
+
+    my_range = st.slider("Set the quantile range",
+        min_value = 0.0,
+        max_value = 1.0,
+        step = .01,
+        value = [0.2, 0.8])
+
+    res = minimize(
+            loss, np.ones(2), method='Nelder-Mead',
+            tol=1e-6, args=(my_range[0], my_range[1], p1, p2, qbeta))
+
+    x = np.linspace(0.0, 1.0, n_points)
+    y = ss.beta.pdf(x, res['x'][0], res['x'][0])
+    fig, ax = plt.subplots()
+    ax.plot(x, y)
+
+    st.pyplot(fig)
+
+    st.markdown(rf"""
+        The parameters $\alpha$ and $\beta$ of the beta distribution are:
+
+        $\alpha$: {res['x'][0]}
+
+        $\beta$: {res['x'][1]}
         """)
