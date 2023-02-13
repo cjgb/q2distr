@@ -8,11 +8,27 @@ from scipy.optimize import minimize
 
 import numpy as np
 
+plt.style.use('dark_background')
+
 n_points = 1000
 
 def loss(parms, q1, q2, p1, p2, qfoo):
     mu, sigma = parms
     return (qfoo(p1, mu, sigma) - q1)**2 + (qfoo(p2, mu, sigma) - q2)**2
+
+def my_plot(x, y, q1, q2):
+    fig, ax = plt.subplots()
+    ax.tick_params(left = False, right = False , labelleft = False)
+    ax.plot(x, y, color = 'red', alpha = .6)
+
+    plt.axvline(x = q1, color = 'blue', alpha = 0.5)
+    plt.axvline(x = q2, color = 'blue', alpha = 0.5)
+
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+    ax.spines['left'].set_visible(False)
+
+    return fig
 
 
 # -----------------------------------------------------------------------------
@@ -83,10 +99,8 @@ if select_distribution == 'Normal':
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.norm.pdf(x, res['x'][0], scale = 1 / res['x'][1])
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
 
-    st.pyplot(fig)
+    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
     st.markdown(rf"""
         The parameters $\mu$ and $\sigma$ of the normal distribution are
@@ -134,10 +148,8 @@ elif select_distribution == 't':
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.t.pdf(x, nu, res['x'][0], scale = 1 / res['x'][1])
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
 
-    st.pyplot(fig)
+    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
     st.markdown(rf"""
         The parameters $\mu$ and $\sigma$ of the t distribution with {nu} degrees of freedom
@@ -178,10 +190,8 @@ elif select_distribution == 'Gamma':
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.gamma.pdf(x, res['x'][0], scale = 1 / res['x'][1])
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
 
-    st.pyplot(fig)
+    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
     st.markdown(rf"""
         The parameters $\alpha$ and $\beta$ of the
@@ -223,10 +233,8 @@ elif select_distribution == 'Inverse Gamma':
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.invgamma.pdf(x, res['x'][0], scale = res['x'][1])
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
 
-    st.pyplot(fig)
+    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
     st.markdown(rf"""
         The parameters $\alpha$ and $\beta$ of the
@@ -270,10 +278,8 @@ elif select_distribution == 'LogNormal':
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.lognorm.pdf(x, res['x'][1], scale = np.exp(mu))
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
 
-    st.pyplot(fig)
+    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
     st.markdown(rf"""
         The parameters $\mu$ and $\sigma$ of the lognormal distribution are:
@@ -307,10 +313,8 @@ elif select_distribution == 'Beta':
 
     x = np.linspace(0.0, 1.0, n_points)
     y = ss.beta.pdf(x, res['x'][0], res['x'][0])
-    fig, ax = plt.subplots()
-    ax.plot(x, y)
 
-    st.pyplot(fig)
+    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
     st.markdown(rf"""
         The parameters $\alpha$ and $\beta$ of the beta distribution are:
