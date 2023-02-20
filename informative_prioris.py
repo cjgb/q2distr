@@ -4,6 +4,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
 import scipy.stats as ss
+
 from scipy.optimize import minimize
 
 import numpy as np
@@ -77,9 +78,6 @@ if select_distribution == 'Normal':
     Standard normal distribution $N(\mu, \sigma)$.
     """)
 
-    def qnormal(p, mu, sigma):
-        return ss.norm.ppf(p, mu, sigma)
-
     full_range = st.slider("Set the graph range",
         min_value = -50.0,
         max_value =  50.0,
@@ -95,7 +93,7 @@ if select_distribution == 'Normal':
 
     res = minimize(
             loss, np.ones(2), method='Nelder-Mead',
-            tol=1e-6, args=(my_range[0], my_range[1], p1, p2, qnormal))
+            tol=1e-6, args=(my_range[0], my_range[1], p1, p2, ss.norm.ppf))
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.norm.pdf(x, res['x'][0], scale = 1 / res['x'][1])
@@ -298,9 +296,6 @@ elif select_distribution == 'Beta':
     function $f(x) \sim x^{\alpha -1} (1-x)^{\beta - 1}$.
     """)
 
-    def qbeta(p, a, b):
-        return ss.beta.ppf(p, a, b)
-
     my_range = st.slider("Set the quantile range",
         min_value = 0.0,
         max_value = 1.0,
@@ -309,7 +304,7 @@ elif select_distribution == 'Beta':
 
     res = minimize(
             loss, np.ones(2), method='Nelder-Mead',
-            tol=1e-6, args=(my_range[0], my_range[1], p1, p2, qbeta))
+            tol=1e-6, args=(my_range[0], my_range[1], p1, p2, ss.beta.ppf))
 
     x = np.linspace(0.0, 1.0, n_points)
     y = ss.beta.pdf(x, res['x'][0], res['x'][0])
