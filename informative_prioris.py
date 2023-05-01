@@ -1,4 +1,6 @@
-import datetime
+"""
+@gilbellosta, 2023-05-01
+"""
 
 import streamlit as st
 import matplotlib.pyplot as plt
@@ -15,7 +17,10 @@ n_points = 1000
 
 def loss(parms, q1, q2, p1, p2, qfoo):
     mu, sigma = parms
-    return (qfoo(p1, mu, sigma) - q1)**2 + (qfoo(p2, mu, sigma) - q2)**2
+    print(f"{mu} - {sigma}")
+    out = (qfoo(p1, mu, sigma) - q1)**2 + (qfoo(p2, mu, sigma) - q2)**2
+    print(out)
+    return out
 
 def my_plot(x, y, q1, q2):
     fig, ax = plt.subplots()
@@ -302,9 +307,14 @@ elif select_distribution == 'Beta':
         step = .01,
         value = [0.2, 0.8])
 
-    res = minimize(
-            loss, np.ones(2), method='Nelder-Mead',
-            tol=1e-6, args=(my_range[0], my_range[1], p1, p2, ss.beta.ppf))
+    res = [minimize(
+                loss, np.array([a, b]), method='Nelder-Mead',
+                tol=1e-6,
+                args=(my_range[0], my_range[1], p1, p2, ss.beta.ppf))
+            for a in [1.0, 10.0, 50.0]
+            for b in [1.0, 10.0, 50.0]]
+
+    res = min(res, key=lambda x: x.fun)
 
     x = np.linspace(0.0, 1.0, n_points)
     y = ss.beta.pdf(x, res['x'][0], res['x'][1])
