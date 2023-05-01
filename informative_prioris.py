@@ -17,9 +17,7 @@ n_points = 1000
 
 def loss(parms, q1, q2, p1, p2, qfoo):
     mu, sigma = parms
-    print(f"{mu} - {sigma}")
     out = (qfoo(p1, mu, sigma) - q1)**2 + (qfoo(p2, mu, sigma) - q2)**2
-    print(out)
     return out
 
 def my_plot(x, y, q1, q2):
