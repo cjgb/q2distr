@@ -307,7 +307,7 @@ elif select_distribution == 'Beta':
             tol=1e-6, args=(my_range[0], my_range[1], p1, p2, ss.beta.ppf))
 
     x = np.linspace(0.0, 1.0, n_points)
-    y = ss.beta.pdf(x, res['x'][0], res['x'][0])
+    y = ss.beta.pdf(x, res['x'][0], res['x'][1])
 
     st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
 
