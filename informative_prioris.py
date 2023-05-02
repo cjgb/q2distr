@@ -3,22 +3,27 @@
 """
 
 import streamlit as st
-import matplotlib.pyplot as plt
-import pandas as pd
-import scipy.stats as ss
-
-from scipy.optimize import minimize
 
 import numpy as np
+import pandas as pd
+
+import scipy.stats as ss
+from scipy.optimize import minimize
+import matplotlib.pyplot as plt
 
 plt.style.use('dark_background')
 
 n_points = 1000
 
 def loss(parms, q1, q2, p1, p2, qfoo):
-    mu, sigma = parms
-    out = (qfoo(p1, mu, sigma) - q1)**2 + (qfoo(p2, mu, sigma) - q2)**2
-    return out
+    """
+    Loss function. We want to reduce the (quadratic) error between the
+    target quantiles and the quantiles of the distribution with the given
+    parameters.
+    """
+    q_target     = np.array([q1, q2])
+    q_candidates = qfoo((p1, p2), parms[0], parms[1])
+    return np.square(q_candidates - q_target).sum()
 
 def my_plot(x, y, q1, q2):
     fig, ax = plt.subplots()
@@ -265,7 +270,7 @@ elif select_distribution == 'LogNormal':
         value = [0.0, 5.0]
     )
 
-    my_range = st.slider("Set the quantile range",
+    r1, r2 = st.slider("Set the quantile range",
         min_value = full_range[0],
         max_value = full_range[1],
         step = .01,
@@ -273,14 +278,14 @@ elif select_distribution == 'LogNormal':
 
     res = minimize(
             loss, np.ones(2), method='Nelder-Mead',
-            tol=1e-6, args=(np.log(my_range[0]), np.log(my_range[1]), p1, p2, qnormal))
+            tol=1e-6, args=(np.log(r1), np.log(r2), p1, p2, qnormal))
 
     mu = res['x'][0]
 
     x = np.linspace(full_range[0], full_range[1], n_points)
     y = ss.lognorm.pdf(x, res['x'][1], scale = np.exp(mu))
 
-    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
+    st.pyplot(my_plot(x, y, r1, r2))
 
     st.markdown(rf"""
         The parameters $\mu$ and $\sigma$ of the lognormal distribution are:
@@ -299,16 +304,20 @@ elif select_distribution == 'Beta':
     function $f(x) \sim x^{\alpha -1} (1-x)^{\beta - 1}$.
     """)
 
-    my_range = st.slider("Set the quantile range",
+    r1, r2 = st.slider("Set the quantile range",
         min_value = 0.0,
         max_value = 1.0,
         step = .01,
         value = [0.2, 0.8])
 
     res = [minimize(
-                loss, np.array([a, b]), method='Nelder-Mead',
+                loss,
+                np.array([a, b]),
+                method='Nelder-Mead',
                 tol=1e-6,
-                args=(my_range[0], my_range[1], p1, p2, ss.beta.ppf))
+                args=(r1, r2, p1, p2, ss.beta.ppf),
+                bounds = ((0, None), (0, None))
+            )
             for a in [1.0, 10.0, 50.0]
             for b in [1.0, 10.0, 50.0]]
 
@@ -317,7 +326,7 @@ elif select_distribution == 'Beta':
     x = np.linspace(0.0, 1.0, n_points)
     y = ss.beta.pdf(x, res['x'][0], res['x'][1])
 
-    st.pyplot(my_plot(x, y, my_range[0], my_range[1]))
+    st.pyplot(my_plot(x, y, r1, r2))
 
     st.markdown(rf"""
         The parameters $\alpha$ and $\beta$ of the beta distribution are:
